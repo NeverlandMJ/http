@@ -3,7 +3,10 @@ package banners
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"sync"
 )
 
@@ -19,6 +22,7 @@ type Banner struct {
 	Content string
 	Button  string
 	Link    string
+	Image   string
 }
 
 // it creats new service
@@ -55,15 +59,28 @@ func (s *Service) ByID(ctx context.Context, id int64) (*Banner, error) {
 var newID int64
 
 //Save and update
-func (s *Service) Save(ctx context.Context, item *Banner) (*Banner, error) {
+func (s *Service) Save(ctx context.Context, item *Banner, file multipart.File) (*Banner, error) {
+
+	newImage := ""
+
 	if item.ID == 0 {
 		newID++
+
+		if item.Image != "" {
+			item.Image = fmt.Sprint(item.ID) + "." + item.Image
+			err := uploadFile(file, "./web/banners/"+item.Image)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		newBnner := &Banner{
 			ID:      newID,
 			Title:   item.Title,
 			Content: item.Content,
 			Button:  item.Button,
 			Link:    item.Link,
+			Image:   newImage,
 		}
 		s.items = append(s.items, newBnner)
 		return newBnner, nil
@@ -80,9 +97,34 @@ func (s *Service) Save(ctx context.Context, item *Banner) (*Banner, error) {
 	ExistB.Title = item.Title
 	ExistB.Content = item.Content
 	ExistB.Link = item.Link
+	if item.Image != "" {
+		item.Image = fmt.Sprint(item.ID) + "." + item.Image
+		err := uploadFile(file, "./web/banners/"+item.Image)
+		if err != nil {
+			return nil, err
+		}
+		ExistB.Image = item.Image
+	}
 
 	return ExistB, nil
 
+}
+
+func uploadFile(file multipart.File, path string) error {
+
+	var data, err = ioutil.ReadAll(file)
+
+	if err != nil {
+		return errors.New("not readble data")
+	}
+
+	err = ioutil.WriteFile(path, data, 0666)
+
+	if err != nil {
+		return errors.New("not saved from folder ")
+	}
+
+	return nil
 }
 
 // Remove by id
