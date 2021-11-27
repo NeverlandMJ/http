@@ -99,31 +99,29 @@ func (s *Service) Save(ctx context.Context, item *Banner, file multipart.File) (
 
 		s.items = append(s.items, item)
 		return item, nil
-	} else {
+	}
 
-		sBanner, err := s.ByID(ctx, item.ID)
-		if err != nil {
-			log.Print(err)
-			return nil, errors.New("item not found")
-		}
+	for k, v := range s.items {
+		if v.ID == item.ID {
+			if item.Image != "" {
+				item.Image = fmt.Sprint(item.ID) + "." + item.Image
 
-		if item.Image != "" {
-			item.Image = fmt.Sprint(item.ID) + "." + item.Image
+				data, err := ioutil.ReadAll(file)
+				if err != nil {
+					return nil, errors.New("not readible data")
+				}
 
-			data, err := ioutil.ReadAll(file)
-			if err != nil {
-				return nil, errors.New("not readible data")
+				err = ioutil.WriteFile("./web/banners/"+item.Image, data, 0666)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				item.Image = s.items[k].Image
 			}
 
-			err = ioutil.WriteFile("./web/banners/"+item.Image, data, 0666)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			sBanner = item
-			return sBanner, nil
+			s.items[k] = item
+			return item, nil
 		}
-
 	}
 
 	return nil, errors.New("item not found")
