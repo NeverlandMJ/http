@@ -195,6 +195,13 @@ func (s *Server) handleSaveBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if title == "" && content == "" && button == "" && link == "" {
+
+		log.Print(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
 	item := &banners.Banner{
 		ID:      id,
 		Title:   title,
@@ -225,7 +232,7 @@ func (s *Server) handleSaveBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Contetn-Type", "applicatrion/json")
+	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(data)
 	if err != nil {
 		log.Print(err)

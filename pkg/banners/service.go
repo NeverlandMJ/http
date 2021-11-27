@@ -91,7 +91,7 @@ func (s *Service) Save(ctx context.Context, item *Banner, file multipart.File) (
 				return nil, errors.New("not readible data")
 			}
 
-			err = ioutil.WriteFile(".web/banners/"+item.Image, data, 0666)
+			err = ioutil.WriteFile("./web/banners/"+item.Image, data, 0666)
 			if err != nil {
 				return nil, err
 			}
@@ -115,7 +115,7 @@ func (s *Service) Save(ctx context.Context, item *Banner, file multipart.File) (
 				return nil, errors.New("not readible data")
 			}
 
-			err = ioutil.WriteFile(".web/banners/"+item.Image, data, 0666)
+			err = ioutil.WriteFile("./web/banners/"+item.Image, data, 0666)
 			if err != nil {
 				return nil, err
 			}
