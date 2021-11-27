@@ -61,8 +61,6 @@ var newID int64
 //Save and update
 func (s *Service) Save(ctx context.Context, item *Banner, file multipart.File) (*Banner, error) {
 
-	newImage := ""
-
 	if item.ID == 0 {
 		newID++
 
@@ -80,7 +78,7 @@ func (s *Service) Save(ctx context.Context, item *Banner, file multipart.File) (
 			Content: item.Content,
 			Button:  item.Button,
 			Link:    item.Link,
-			Image:   newImage,
+			Image:   item.Image,
 		}
 		s.items = append(s.items, newBnner)
 		return newBnner, nil
