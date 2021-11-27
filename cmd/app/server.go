@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -164,28 +163,30 @@ func (s *Server) handleremoveByID(writer http.ResponseWriter, request *http.Requ
 	}
 }
 
-func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
-	file, header, err := r.FormFile("image")
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	defer file.Close()
-	newFile, err := os.Create("./web/banners/" + header.Filename)
-	if err != nil {
-		log.Print(err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	defer newFile.Close()
-}
+// func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
+// 	file, header, err := r.FormFile("image")
+// 	if err != nil {
+// 		log.Print(err)
+// 		return
+// 	}
+// 	defer file.Close()
+// 	newFile, err := os.Create("./web/banners/" + header.Filename)
+// 	if err != nil {
+// 		log.Print(err)
+// 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+// 		return
+// 	}
+// 	defer newFile.Close()
+// }
 
 func (s *Server) handleSaveBanner(w http.ResponseWriter, r *http.Request) {
-	idp := r.FormValue("id")
-	titlep := r.FormValue("title")
-	contentp := r.FormValue("content")
-	buttonp := r.FormValue("button")
-	linkp := r.FormValue("link")
+	// getting datat through request
+
+	idp := r.PostFormValue("id")
+	title := r.PostFormValue("title")
+	content := r.PostFormValue("content")
+	button := r.PostFormValue("button")
+	link := r.PostFormValue("link")
 
 	id, err := strconv.ParseInt(idp, 10, 64)
 	if err != nil {
@@ -194,21 +195,22 @@ func (s *Server) handleSaveBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	banner := &banners.Banner{
+	item := &banners.Banner{
 		ID:      id,
-		Title:   titlep,
-		Content: contentp,
-		Button:  buttonp,
-		Link:    linkp,
+		Title:   title,
+		Content: content,
+		Button:  button,
+		Link:    link,
 	}
 
 	file, header, err := r.FormFile("image")
+
 	if err == nil {
-		im := strings.Split(header.Filename, ".")
-		banner.Image = im[len(im)-1]
+		name := strings.Split(header.Filename, ".")
+		item.Image = name[len(name)-1]
 	}
 
-	Newbanner, err := s.bannersSvc.Save(r.Context(), banner, file)
+	banner, err := s.bannersSvc.Save(r.Context(), item, file)
 
 	if err != nil {
 		log.Print(err)
@@ -216,12 +218,13 @@ func (s *Server) handleSaveBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := json.Marshal(Newbanner)
+	data, err := json.Marshal(banner)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("Contetn-Type", "applicatrion/json")
 	_, err = w.Write(data)
 	if err != nil {
